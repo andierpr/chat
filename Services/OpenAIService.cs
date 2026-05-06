@@ -17,7 +17,7 @@ public class OpenAIService
     {
         var apiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY");
 
-        if (string.IsNullOrEmpty(apiKey))
+        if (string.IsNullOrWhiteSpace(apiKey))
             throw new Exception("GROQ_API_KEY não configurada no Railway.");
 
         var request = new HttpRequestMessage(
@@ -49,10 +49,27 @@ public class OpenAIService
 
         using var doc = JsonDocument.Parse(json);
 
-        return doc.RootElement
-            .GetProperty("choices")[0]
-            .GetProperty("message")
-            .GetProperty("content")
-            .GetString() ?? "Sem resposta";
+        // 🔥 1. TRATA ERRO DA API
+        if (doc.RootElement.TryGetProperty("error", out var error))
+        {
+            var msg = error.GetProperty("message").GetString();
+            throw new Exception($"Groq error: {msg}");
+        }
+
+        // 🔥 2. VALIDA choices
+        if (!doc.RootElement.TryGetProperty("choices", out var choices) ||
+            choices.GetArrayLength() == 0)
+        {
+            throw new Exception("Resposta inválida da IA (sem choices).");
+        }
+
+        // 🔥 3. EXTRAI RESPOSTA COM SEGURANÇA
+        var content =
+            choices[0]
+                .GetProperty("message")
+                .GetProperty("content")
+                .GetString();
+
+        return content ?? "Sem resposta da IA";
     }
 }
