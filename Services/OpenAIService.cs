@@ -17,6 +17,7 @@ namespace AIChatRailway.Services
         {
             var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 
+
             if (string.IsNullOrWhiteSpace(apiKey))
                 return "ERRO: OPENAI_API_KEY não configurada no Railway.";
 
