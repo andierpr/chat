@@ -17,13 +17,16 @@ namespace AIChatRailway.Controllers
         [HttpGet("debug")]
         public IActionResult Debug()
         {
-            var key = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+            var key = Environment.GetEnvironmentVariable("GROQ_API_KEY")
+                      ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 
             return Ok(new
             {
                 exists = !string.IsNullOrEmpty(key),
                 length = key?.Length ?? 0,
-                preview = key is not null ? key[..Math.Min(8, key.Length)] + "..." : null
+                preview = key is not null
+                    ? key[..Math.Min(8, key.Length)] + "..."
+                    : null
             });
         }
 
